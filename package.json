@@ -11,7 +11,10 @@
     "build": "cd server && npm run build && cd ../client && npm run build",
     "test": "cd client && npm test"
   },
-  "author": "",
+  "author": {
+    "name": "Sachin Puthran",
+    "email": "sputhran@everesttech.com"
+  },
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
