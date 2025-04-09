@@ -107,23 +107,23 @@ async function initializeDatabase() {
     )
   `);
 
-    // Insert sample data for Putwall
-    const putwallCount = await db.get('SELECT COUNT(*) as count FROM putwall');
-    if (putwallCount.count === 0) {
-        await insertSamplePutwallData(db);
-    }
-
-    // Insert sample data for Replenishment
-    const replenishmentCount = await db.get('SELECT COUNT(*) as count FROM replenishment');
-    if (replenishmentCount.count === 0) {
-        await insertSampleReplenishmentData(db);
-    }
-
-    // Insert sample data for UnitSort
-    const unitsortCount = await db.get('SELECT COUNT(*) as count FROM unitsort');
-    if (unitsortCount.count === 0) {
-        await insertSampleUnitSortData(db);
-    }
+    // // Insert sample data for Putwall
+    // const putwallCount = await db.get('SELECT COUNT(*) as count FROM putwall');
+    // if (putwallCount.count === 0) {
+    //     await insertSamplePutwallData(db);
+    // }
+    //
+    // // Insert sample data for Replenishment
+    // const replenishmentCount = await db.get('SELECT COUNT(*) as count FROM replenishment');
+    // if (replenishmentCount.count === 0) {
+    //     await insertSampleReplenishmentData(db);
+    // }
+    //
+    // // Insert sample data for UnitSort
+    // const unitsortCount = await db.get('SELECT COUNT(*) as count FROM unitsort');
+    // if (unitsortCount.count === 0) {
+    //     await insertSampleUnitSortData(db);
+    // }
 }
 
 // Insert sample data functions
@@ -243,9 +243,9 @@ app.get('/api/putwall/summary', async (req, res) => {
     try {
         const db = await dbPromise;
         const summary = await db.all(`
-            SELECT zone, status, COUNT(*) as count
+            SELECT substr(zone, 1, 3) as zone, status, COUNT(*) as count
             FROM putwall
-            GROUP BY zone, status
+            GROUP BY substr(zone, 1, 3), status
         `);
         res.header('Access-Control-Allow-Origin', '*');
         res.json(summary);
@@ -280,8 +280,8 @@ app.get('/api/putwall/issue-details/:replen', async (req, res) => {
         const details = await db.all(`
             SELECT *
             FROM putwall
-            WHERE repln_pick_locaion = ?
-        `, [req.params.replen]);
+            WHERE repln_pick_locaion like '%${req.params.replen}%'
+        `);
         res.header('Access-Control-Allow-Origin', '*');
         res.json(details);
     } catch (error) {

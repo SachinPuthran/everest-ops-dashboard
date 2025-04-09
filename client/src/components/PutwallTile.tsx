@@ -130,7 +130,10 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                     </ul>
                     <h3>Status Counts</h3>
                     <ul>
-                        {Object.entries(statusData).map(([status, count]) => (
+                        {Object.entries(statusData)
+                            .filter(([status]) => status !== 'NULL')
+                            .sort(([statusA], [statusB]) => statusA.localeCompare(statusB))
+                            .map(([status, count]) => (
                             <li key={status} className={status === 'ERROR' ? 'alert-item' : ''}>
                 <span className="status">
                   <span className={`status-indicator status-${status.toLowerCase()}`}></span>

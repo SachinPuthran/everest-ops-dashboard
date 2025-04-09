@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useQuery } from 'react-query';
-import { fetchPutwallIssues, fetchPutwallIssueDetails } from '../../api/api';
-import { PutwallIssue, PutwallItem } from '../../types';
+import React, {useState} from 'react';
+import {useQuery} from 'react-query';
+import {fetchPutwallIssueDetails, fetchPutwallIssues} from '../../api/api';
+import {PutwallIssue, PutwallItem} from '../../types';
 import '../../styles/Details.css';
 
 interface IssueModalProps {
@@ -9,11 +9,38 @@ interface IssueModalProps {
     onClose: () => void;
 }
 
-const IssueModal: React.FC<IssueModalProps> = ({ replenLocation, onClose }) => {
-    const { data, isLoading, error } = useQuery(
+const IssueModal: React.FC<IssueModalProps> = ({replenLocation, onClose}) => {
+    const {data, isLoading, error} = useQuery(
         ['putwallIssueDetails', replenLocation],
         () => fetchPutwallIssueDetails(replenLocation)
     );
+
+    const handleExportToExcel = () => {
+        if (!data) return;
+
+        const headers = ['Zone', 'Cubby', 'ItemNumber', 'ContainerID', 'Status', 'OrderNumber', 'Priority'];
+        const rows = data.map((item: PutwallItem) => [
+            item.zone,
+            item.cubby,
+            item.item_number,
+            item.container_id,
+            item.status,
+            item.order_number,
+            item.priority,
+        ]);
+        const worksheet = [headers, ...rows]
+            .map(row => row.join("\t"))
+            .join("\n");
+
+        const blob = new Blob([worksheet], {type: 'text/tab-separated-values;charset=utf-8;'});
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `PutwallIssues_${replenLocation}.xls`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <div className="modal-backdrop">
@@ -60,6 +87,7 @@ const IssueModal: React.FC<IssueModalProps> = ({ replenLocation, onClose }) => {
                     )}
                 </div>
                 <div className="modal-footer">
+                    <button onClick={handleExportToExcel}>Export to Excel</button>
                     <button onClick={onClose}>Close</button>
                 </div>
             </div>
@@ -75,8 +103,8 @@ const PutwallDetails: React.FC = () => {
 
     const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
 
-    const handleIssueClick = (replenLocation: string) => {
-        setSelectedIssue(replenLocation);
+    const handleIssueClick = (replensPriority: number, replensWorkStatus: string) => {
+        setSelectedIssue(`${replensPriority}-${replensWorkStatus}`);
     };
 
     const handleCloseModal = () => {
@@ -88,48 +116,62 @@ const PutwallDetails: React.FC = () => {
         ? data.reduce((total, issue) => total + issue.count, 0)
         : 0;
 
+    const replensData = data
+        ? data.map(issue => {
+            const matches = issue.repln_pick_locaion.match(/PRI:\s*(\d+)-(\w+)\s*Loc:\s*(.+)$/);
+            return matches
+                ? {
+                    priority: parseInt(matches[1], 10),
+                    work_status: matches[2],
+                    location: matches[3],
+                    count: issue.count
+                }
+                : null;
+        }).filter(item => item !== null)
+            .reduce((acc: { priority: number; work_status: string; count: number }[], curr) => {
+                const existing = acc.find(item =>
+                    item.priority === curr.priority &&
+                    item.work_status === curr.work_status
+                );
+                if (existing) {
+                    existing.count += curr.count;
+                } else {
+                    acc.push({...curr});
+                }
+                return acc;
+            }, [] as { priority: number; work_status: string; count: number }[])
+            .sort((a, b) => b.priority - a.priority)
+        : [];
+
     return (
         <div className="details-container">
-            <h2>Putwall Issues</h2>
+            <h2>Replenishment Location Issues</h2>
             {isLoading && <div className="loading">Loading issues...</div>}
-            {/*{error && <div className="error">Error loading issues</div>}*/}
             {data && data.length === 0 && (
                 <div className="no-data">No issues found</div>
             )}
             {data && data.length > 0 && (
                 <>
-                    <div className="issues-summary">
-                        <div className="issue-count">
-                            <span className="label">Total Issues:</span>
-                            <span className="value">{totalIssueCount}</span>
-                        </div>
-                        <div className="issue-types">
-                            <span className="label">Issue Types:</span>
-                            <span className="value">{data.length}</span>
-                        </div>
-                    </div>
                     <div className="issues-list">
-                        <h3>Replenishment Location Issues</h3>
                         <table className="data-table">
                             <thead>
                             <tr>
-                                <th>Replenishment Location</th>
+                                <th>Priority</th>
+                                <th>Work Status</th>
                                 <th>Count</th>
-                                <th>Action</th>
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody>
-                            {data.map(issue => (
-                                <tr
-                                    key={issue.repln_pick_locaion}
-                                    className={issue.repln_pick_locaion === 'NO REPLENS' ? 'high-priority' : ''}
-                                >
-                                    <td>{issue.repln_pick_locaion}</td>
-                                    <td>{issue.count}</td>
+                            {replensData.map((replens: { priority: number; work_status: string; count: number }) => (
+                                <tr key={replens.priority}>
+                                    <td>{replens.priority}</td>
+                                    <td>{replens.work_status}</td>
+                                    <td>{replens.count}</td>
                                     <td>
                                         <button
                                             className="view-btn"
-                                            onClick={() => handleIssueClick(issue.repln_pick_locaion)}
+                                            onClick={() => handleIssueClick(replens.priority, replens.work_status)}
                                         >
                                             View Details
                                         </button>
