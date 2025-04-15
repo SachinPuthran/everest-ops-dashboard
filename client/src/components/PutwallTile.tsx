@@ -8,7 +8,6 @@ import {
     ArcElement,
     Tooltip,
     Legend,
-    ChartData,
     ChartOptions
 } from 'chart.js';
 import '../styles/Tile.css';
@@ -39,47 +38,70 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
         );
     }
 
-    // Prepare data for zone chart
-    const zoneData: Record<string, number> = {};
-    const statusData: Record<string, number> = {};
+    const aggregatedData = data.reduce<Record<string, Record<string, number>>>(
+        (acc, item) => {
+            if (!acc[item.zone]) {
+                acc[item.zone] = {
+                    PackReadyCount: 0,
+                    OnConveyorCount: 0,
+                    PartiallyPickedCount: 0,
+                    WaitingForReplensCount: 0,
+                    NoReplensCount: 0,
+                    EmptyCubbyCount: 0,
+                };
+            }
+            acc[item.zone].PackReadyCount += item.PackReadyCount;
+            acc[item.zone].OnConveyorCount += item.OnConveyorCount;
+            acc[item.zone].PartiallyPickedCount += item.PartiallyPickedCount;
+            acc[item.zone].WaitingForReplensCount += item.WaitingForReplensCount;
+            acc[item.zone].NoReplensCount += item.NoReplensCount;
+            acc[item.zone].EmptyCubbyCount += item.EmptyCubbyCount;
 
-    data.forEach(item => {
-        // Aggregate by zone
-        if (!zoneData[item.zone]) {
-            zoneData[item.zone] = 0;
-        }
-        zoneData[item.zone] += item.count;
+            return acc;
+        },
+        {}
+    );
 
-        // Aggregate by status
-        if (!statusData[item.status]) {
-            statusData[item.status] = 0;
-        }
-        statusData[item.status] += item.count;
-    });
+    const zonesData = Object.values(aggregatedData);
 
-    const chartData: ChartData<'pie'> = {
-        labels: Object.keys(zoneData),
+    const chartLabels = [
+        "PackReadyCount",
+        "OnConveyorCount",
+        "PartiallyPickedCount",
+        "WaitingForReplensCount",
+        "NoReplensCount",
+        "EmptyCubbyCount",
+    ];
+
+    const pieData = chartLabels.map((label) =>
+        zonesData.reduce((sum, zone) => sum + zone[label], 0)
+    );
+
+    const chartData = {
+        labels: chartLabels,
         datasets: [
             {
-                data: Object.values(zoneData),
+                label: "Putwall Summary",
+                data: pieData,
                 backgroundColor: [
-                    '#FF6384',
-                    '#36A2EB',
-                    '#FFCE56',
-                    '#4BC0C0',
-                    '#9966FF',
-                    '#FF9F40'
+                    "#007bff", // Blue for PackReady
+                    "#28a745", // Green for OnConveyor
+                    "#ffc107", // Yellow for PartiallyPicked
+                    "#fd7e14", // Orange for WaitingForReplens
+                    "#ff3838", // Red for NoReplens
+                    "#6c757d", // Grey for EmptyCubby
                 ],
-                hoverBackgroundColor: [
-                    '#FF6384',
-                    '#36A2EB',
-                    '#FFCE56',
-                    '#4BC0C0',
-                    '#9966FF',
-                    '#FF9F40'
-                ]
-            }
-        ]
+                borderColor: [
+                    "#0056b3",
+                    "#19692c",
+                    "#cc9a06",
+                    "#b85306",
+                    "#b01e1e",
+                    "#52575c",
+                ],
+                borderWidth: 1,
+            },
+        ],
     };
 
     const chartOptions: ChartOptions<'pie'> = {
@@ -97,58 +119,50 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
             },
             tooltip: {
                 callbacks: {
-                    label: function(context) {
-                        const label = context.label || '';
-                        const value = context.raw as number;
-                        const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
-                        const percentage = Math.round((value / total) * 100);
-                        return `${label}: ${value} (${percentage}%)`;
-                    }
-                }
-            }
-        }
+                    label: (tooltipItem: any) => {
+                        const label = tooltipItem.label || "";
+                        const value = tooltipItem.raw || 0;
+                        return `${label}: ${value}`;
+                    },
+                },
+            },
+        },
     };
 
-    // Check if there are any errors in the data
-    const hasErrors = data.some(item => item.status === 'ERROR');
+    const hasErrors = data.some(item => item.WaitingForReplensCount !== 0);
 
     return (
         <div className={`tile ${isActive ? 'active' : ''} ${hasErrors ? 'alert' : ''}`} onClick={onClick}>
             <h2>Putwall</h2>
             <div className="tile-content">
                 <div className="chart-container">
-                    <Pie data={chartData} options={chartOptions} />
+                    <Pie data={chartData} options={chartOptions}/>
                 </div>
                 <div className="summary-container">
                     <h3>Zone Counts</h3>
                     <ul>
-                        {Object.entries(zoneData).map(([zone, count]) => (
-                            <li key={zone}>
-                                <span className="zone">{zone}:</span> {count}
-                            </li>
-                        ))}
-                    </ul>
-                    <h3>Status Counts</h3>
-                    <ul>
-                        {Object.entries(statusData)
-                            .filter(([status]) => status !== 'NULL')
-                            .sort(([statusA], [statusB]) => statusA.localeCompare(statusB))
-                            .map(([status, count]) => (
-                            <li key={status} className={status === 'ERROR' ? 'alert-item' : ''}>
-                <span className="status">
-                  <span className={`status-indicator status-${status.toLowerCase()}`}></span>
-                    {status}:
-                </span>
-                                {count}
-                                {status === 'ERROR' && count > 0 && <span className="alert-badge">!</span>}
-                            </li>
-                        ))}
+                        {data.map((item) => {
+                            const zone = item.zone;
+                            let totalCount = item.PackReadyCount + item.OnConveyorCount + item.PartiallyPickedCount + item.WaitingForReplensCount + item.NoReplensCount + item.EmptyCubbyCount;
+                            return (<>
+                                <li className="divider"></li>
+                                <li><span className="zone">{zone}</span></li>
+                                <li><span className="label">Total Cubbies:</span> {totalCount}</li>
+                                <li><span className="label">Pack Ready:</span> {item.PackReadyCount}</li>
+                                <li><span className="label">On Conveyor:</span> {item.OnConveyorCount}</li>
+                                <li><span className="label">Partially Picked:</span> {item.PartiallyPickedCount}</li>
+                                <li><span className="label alert-item">Waiting for Replenishment:</span> {item.WaitingForReplensCount}</li>
+                                <li><span className="label">No Replenishments:</span> {item.NoReplensCount}</li>
+                                <li><span className="label">Empty Cubby:</span> {item.EmptyCubbyCount}</li>
+                            </>);
+                        })}
                     </ul>
                 </div>
             </div>
             <div className="tile-footer">
                 <span>Click to view details</span>
-                {hasErrors && <span className="alert-indicator">Issues detected</span>}
+                {hasErrors && <span
+                    className="alert-indicator">Waiting for replenishment - {data.reduce((sum, item) => sum + item.WaitingForReplensCount, 0)}</span>}
             </div>
         </div>
     );

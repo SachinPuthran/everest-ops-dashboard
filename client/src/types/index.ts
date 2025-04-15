@@ -1,20 +1,24 @@
 // Common types
-export type Status = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'ERROR' | 'CANCELLED' | 'UNKNOWN';
+export type Status = 'PICKED' | 'UNKNOWN' | 'RELEASED';
 export type Priority = 1 | 2 | 3 | 4 | 5;
-export type Zone = 'A' | 'B' | 'C' | 'D' | string;
 export type WorkType = 'NORMAL' | 'EXPEDITED' | 'REPLEN' | 'MOVE' | 'PICK' | string;
-
-// Dashboard types
-export interface DetailSection {
-    name: 'putwall' | 'replenishment' | 'unitsort' | null;
-    title: string;
-}
+export type CubbyStatus = 'ALL' | 'PACKREADY' | 'ONCONVEYOR' | 'PARTIALLYPICKED' | 'WAITINGFORREPLENS' | 'NOREPLENS' | 'EMPTYCUBBY';
 
 // Putwall types
 export interface PutwallSummaryItem {
-    zone: Zone;
+    zone: string;
+    PackReadyCount: number;
+    OnConveyorCount: number;
+    PartiallyPickedCount: number;
+    WaitingForReplensCount: number;
+    NoReplensCount: number;
+    EmptyCubbyCount: number;
+}
+
+export interface PutwallDetailsFilter {
+    zone: string;
+    cubbyStatus: CubbyStatus;
     status: Status;
-    count: number;
 }
 
 export interface PutwallIssue {
@@ -24,7 +28,7 @@ export interface PutwallIssue {
 
 export interface PutwallItem {
     id: number;
-    zone: Zone;
+    zone: string;
     cubby: string;
     pack_side_color: string;
     location_id: string;
@@ -44,7 +48,7 @@ export interface PutwallItem {
 }
 
 export interface PutwallFilterOptions {
-    zone?: Zone;
+    zone?: string;
     status?: Status;
     repln_pick_locaion?: string;
     work_type?: WorkType;
@@ -76,7 +80,7 @@ export interface ReplenishmentItem {
     qty: number;
     workers_required: number;
     workers_assigned: number;
-    zone: Zone;
+    zone: string;
     employee_id: string | null;
     priority_overridden: boolean;
     datetime_stamp: string;
@@ -90,7 +94,7 @@ export interface ReplenishmentFilterOptions {
     work_type?: WorkType;
     work_status?: Status;
     priority?: Priority;
-    zone?: Zone;
+    zone?: string;
     date_from?: string;
     date_to?: string;
 }
@@ -130,56 +134,10 @@ export interface UnitSortFilterOptions {
     order_date_to?: string;
 }
 
-// API response types
-export interface APIErrorResponse {
-    error: string;
-    message?: string;
-    status?: number;
-}
-
-export interface APISuccessResponse<T> {
-    data: T;
-    status: number;
-    message?: string;
-}
-
 // UI component prop types
 export interface TileProps {
     isActive: boolean;
     onClick: () => void;
-}
-
-export interface ModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title: string;
-    children: React.ReactNode;
-}
-
-export interface TableProps<T> {
-    data: T[];
-    columns: TableColumn<T>[];
-    sortable?: boolean;
-    filterable?: boolean;
-    onRowClick?: (item: T) => void;
-    loading?: boolean;
-    emptyMessage?: string;
-}
-
-export interface TableColumn<T> {
-    key: keyof T | string;
-    header: string;
-    renderCell?: (item: T) => React.ReactNode;
-    sortable?: boolean;
-    width?: string;
-}
-
-// App state types
-export interface DashboardState {
-    autoRefresh: boolean;
-    refreshInterval: number;
-    lastRefreshed: Date | null;
-    activeDetailSection: DetailSection | null;
 }
 
 export interface FilterState {

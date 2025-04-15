@@ -76,6 +76,10 @@
     margin-right: 5px;
 }
 
+.zone {
+    color: #6c2081;
+}
+
 .total {
     margin-top: 8px;
     padding-top: 8px;
@@ -113,6 +117,12 @@
     height: 8px;
     border-radius: 50%;
     margin-right: 5px;
+}
+
+.divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 10px 0;
 }
 
 .status-indicator.green {

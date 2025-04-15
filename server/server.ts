@@ -54,6 +54,18 @@ async function initializeDatabase() {
     )
   `);
 
+    // Create PickDetail table
+    await db.exec(`
+    CREATE TABLE IF NOT EXISTS pickdetail (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      container_id TEXT,
+      order_number TEXT,
+      status TEXT,
+      item_number TEXT,
+      pick_area TEXT
+    )
+  `);
+
     // Create Replenishment table
     await db.exec(`
     CREATE TABLE IF NOT EXISTS replenishment (
@@ -243,9 +255,16 @@ app.get('/api/putwall/summary', async (req, res) => {
     try {
         const db = await dbPromise;
         const summary = await db.all(`
-            SELECT substr(zone, 1, 3) as zone, status, COUNT(*) as count
-            FROM putwall
-            GROUP BY substr(zone, 1, 3), status
+            select substr(zone, 1, 3)  as zone,
+                   sum(case when NOT EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) then 1 else 0 end) as PackReadyCount,
+                   sum(case when EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (type = 'Y') then 1 else 0 end) as OnConveyorCount,
+                   sum(case when EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (status = 'RELEASED') then 1 else 0 end) as PartiallyPickedCount,
+                   sum(case when EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (repln_pick_locaion like 'REPLEN:%') then 1 else 0 end) as WaitingForReplensCount,
+                   sum(case when EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (repln_pick_locaion like '%NO REPLENS%') then 1 else 0 end) as NoReplensCount,
+                   sum(case when container_id = 'NULL' then 1 else 0 end) as EmptyCubbyCount
+            from putwall t
+            group by 1
+            order by 1;
         `);
         res.header('Access-Control-Allow-Origin', '*');
         res.json(summary);
@@ -256,32 +275,57 @@ app.get('/api/putwall/summary', async (req, res) => {
     }
 });
 
-app.get('/api/putwall/issues', async (req, res) => {
+app.get('/api/putwall/data', async (req, res) => {
     try {
         const db = await dbPromise;
-        const issues = await db.all(`
-            SELECT repln_pick_locaion, COUNT(*) as count
-            FROM putwall
-            WHERE repln_pick_locaion LIKE 'REPLEN%' OR repln_pick_locaion = 'NO REPLENS'
-            GROUP BY repln_pick_locaion
-        `);
+
+        const { status, zone } = req.query;
+
+        let query = 'SELECT * FROM putwall WHERE 1=1';
+        const params = [];
+
+        if (status) {
+            query += ' AND status = ?';
+            params.push(status);
+        }
+
+        if (zone) {
+            query += ' AND zone = ?';
+            params.push(zone);
+        }
+
+        const data = await db.all(query, params);
+
         res.header('Access-Control-Allow-Origin', '*');
-        res.json(issues);
+        res.json(data);
     } catch (error) {
-        console.error('Error fetching putwall issues:', error);
+        console.error('Error fetching putwall data:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({ error: 'Failed to fetch putwall issues' });
+        res.status(500).json({ error: 'Failed to fetch putwall data' });
     }
 });
 
 app.get('/api/putwall/issue-details/:replen', async (req, res) => {
     try {
         const db = await dbPromise;
-        const details = await db.all(`
-            SELECT *
-            FROM putwall
-            WHERE repln_pick_locaion like '%${req.params.replen}%'
-        `);
+
+        const { status, zone } = req.query;
+
+        let query = `SELECT * FROM putwall WHERE repln_pick_locaion like '%${req.params.replen}%'`;
+        const params = [];
+
+        if (status) {
+            query += ' AND status = ?';
+            params.push(status);
+        }
+
+        if (zone) {
+            query += ' AND zone = ?';
+            params.push(zone);
+        }
+
+        const details = await db.all(query, params);
+
         res.header('Access-Control-Allow-Origin', '*');
         res.json(details);
     } catch (error) {

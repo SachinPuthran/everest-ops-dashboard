@@ -1,18 +1,69 @@
-import React, {useState} from 'react';
-import {useQuery} from 'react-query';
-import {fetchPutwallIssueDetails, fetchPutwallIssues} from '../../api/api';
-import {PutwallIssue, PutwallItem} from '../../types';
+import React, { useState, useEffect } from 'react';
+import { useQuery } from 'react-query';
+import { fetchPutwallIssues, fetchPutwallIssueDetails, fetchPutwallData } from '../../api/api';
+import { PutwallIssue, PutwallItem } from '../../types';
 import '../../styles/Details.css';
 
 interface IssueModalProps {
     replenLocation: string;
+    filters: {
+        status: string;
+        zone: string;
+    };
     onClose: () => void;
 }
 
-const IssueModal: React.FC<IssueModalProps> = ({replenLocation, onClose}) => {
-    const {data, isLoading, error} = useQuery(
-        ['putwallIssueDetails', replenLocation],
-        () => fetchPutwallIssueDetails(replenLocation)
+interface FilterProps {
+    statuses: string[];
+    zones: string[];
+    filters: {
+        status: string;
+        zone: string;
+    };
+    onChange: (name: string, value: string) => void;
+    onClear: () => void;
+}
+
+const FilterBar: React.FC<FilterProps> = ({ statuses, zones, filters, onChange, onClear }) => (
+    <div className="filters-container">
+        <div className="filter-group">
+            <label htmlFor="status">Status:</label>
+            <select
+                id="status"
+                name="status"
+                value={filters.status}
+                onChange={(e) => onChange('status', e.target.value)}
+            >
+                <option value="">All Statuses</option>
+                {statuses.map(status => (
+                    <option key={status} value={status}>{status}</option>
+                ))}
+            </select>
+        </div>
+        <div className="filter-group">
+            <label htmlFor="zone">Zone:</label>
+            <select
+                id="zone"
+                name="zone"
+                value={filters.zone}
+                onChange={(e) => onChange('zone', e.target.value)}
+            >
+                <option value="">All Zones</option>
+                {zones.map(zone => (
+                    <option key={zone} value={zone}>{zone}</option>
+                ))}
+            </select>
+        </div>
+        <button className="clear-filters-btn" onClick={onClear}>
+            Clear Filters
+        </button>
+    </div>
+);
+
+const IssueModal: React.FC<IssueModalProps> = ({ replenLocation, filters, onClose }) => {
+    const { data, isLoading, error } = useQuery(
+        ['putwallIssueDetails', replenLocation, filters],
+        () => fetchPutwallIssueDetails(replenLocation, filters)
     );
 
     const handleExportToExcel = () => {
@@ -42,6 +93,42 @@ const IssueModal: React.FC<IssueModalProps> = ({replenLocation, onClose}) => {
         document.body.removeChild(link);
     };
 
+    // Get unique statuses and zones for filters
+    const statuses: any = React.useMemo(() => {
+        if (!data) return [];
+        return [...new Set(data.map((item: PutwallItem) => item.status))];
+    }, [data]);
+
+    const zones: any = React.useMemo(() => {
+        if (!data) return [];
+        return [...new Set(data.map((item: PutwallItem) => item.zone))];
+    }, [data]);
+
+    const [modalFilters, setModalFilters] = useState(filters);
+
+    const handleFilterChange = (name: string, value: string) => {
+        setModalFilters(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleClearFilters = () => {
+        setModalFilters({ status: '', zone: '' });
+    };
+
+    // Filter data locally (for immediate feedback)
+    const filteredData = React.useMemo(() => {
+        if (!data) return [];
+
+        return data.filter((item: PutwallItem) => {
+            return (
+                (modalFilters.status === '' || item.status === modalFilters.status) &&
+                (modalFilters.zone === '' || item.zone === modalFilters.zone)
+            );
+        });
+    }, [data, modalFilters]);
+
     return (
         <div className="modal-backdrop">
             <div className="modal-content">
@@ -53,37 +140,68 @@ const IssueModal: React.FC<IssueModalProps> = ({replenLocation, onClose}) => {
                     {isLoading && <div className="loading">Loading...</div>}
                     {error && <div className="error">Error loading details</div>}
                     {data && (
-                        <table className="data-table">
-                            <thead>
-                            <tr>
-                                <th>Zone</th>
-                                <th>Cubby</th>
-                                <th>Item Number</th>
-                                <th>Container ID</th>
-                                <th>Status</th>
-                                <th>Order Number</th>
-                                <th>Priority</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {data.map((item: PutwallItem) => (
-                                <tr key={item.id}>
-                                    <td>{item.zone}</td>
-                                    <td>{item.cubby}</td>
-                                    <td>{item.item_number}</td>
-                                    <td>{item.container_id}</td>
-                                    <td>
-                                        <span className={`status-indicator status-${item.status.toLowerCase()}`}></span>
-                                        {item.status}
-                                    </td>
-                                    <td>{item.order_number}</td>
-                                    <td className={`priority-${item.priority <= 2 ? 'high' : item.priority <= 3 ? 'medium' : 'low'}`}>
-                                        {item.priority}
-                                    </td>
+                        <>
+                            <FilterBar
+                                statuses={statuses}
+                                zones={zones}
+                                filters={modalFilters}
+                                onChange={handleFilterChange}
+                                onClear={handleClearFilters}
+                            />
+
+                            <div className="data-summary">
+                                <span>Showing {filteredData.length} of {data.length} items</span>
+                            </div>
+
+                            <table className="data-table">
+                                <thead>
+                                <tr>
+                                    <th>Zone</th>
+                                    <th>Cubby</th>
+                                    <th>Item Number</th>
+                                    <th>Container ID</th>
+                                    <th>Status</th>
+                                    <th>Order Number</th>
+                                    <th>Priority</th>
+                                    <th>Work Type</th>
+                                    <th>Pick Location</th>
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                {filteredData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={9} className="no-data">No data matching current filters</td>
+                                    </tr>
+                                ) : (
+                                    filteredData.map((item: PutwallItem) => (
+                                        <tr key={item.id}>
+                                            <td>{item.zone}</td>
+                                            <td>{item.cubby}</td>
+                                            <td>{item.item_number}</td>
+                                            <td>{item.container_id}</td>
+                                            <td>
+                                                <span className={`status-indicator status-${item.status.toLowerCase()}`}></span>
+                                                {item.status}
+                                            </td>
+                                            <td>{item.order_number}</td>
+                                            <td className={`priority-${item.priority <= 2 ? 'high' : item.priority <= 3 ? 'medium' : 'low'}`}>
+                                                {item.priority}
+                                            </td>
+                                            <td>{item.work_type}</td>
+                                            <td>{item.pick_location}</td>
+                                        </tr>
+                                    ))
+                                )}
+                                </tbody>
+                            </table>
+
+                            {filteredData.length > 0 && (
+                                <div className="item-details">
+                                    <h4>Additional Item Details</h4>
+                                    <p>Select an item to view all details</p>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
                 <div className="modal-footer">
@@ -96,96 +214,177 @@ const IssueModal: React.FC<IssueModalProps> = ({replenLocation, onClose}) => {
 };
 
 const PutwallDetails: React.FC = () => {
-    const { data, isLoading, error } = useQuery<PutwallIssue[]>(
+    // Query for issues and all putwall data
+    const { data: issuesData, isLoading: issuesLoading, error: issuesError } = useQuery<PutwallIssue[]>(
         'putwallIssues',
         fetchPutwallIssues
     );
 
+    const [filters, setFilters] = useState({
+        status: '',
+        zone: ''
+    });
+
+    const { data: allPutwallData, isLoading: dataLoading, error: dataError } = useQuery<PutwallItem[]>(
+        ['putwallData', filters],
+        () => fetchPutwallData(filters),
+        {
+            // This ensures the data is refetched when filters change
+            refetchOnWindowFocus: false,
+            keepPreviousData: true
+        }
+    );
+
+    const [activeTab, setActiveTab] = useState('issues');
+
+    const handleTabClick = (tabName: string) => {
+        setActiveTab(tabName);
+    };
+
     const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
 
-    const handleIssueClick = (replensPriority: number, replensWorkStatus: string) => {
-        setSelectedIssue(`${replensPriority}-${replensWorkStatus}`);
+    // Extract unique statuses and zones from all data
+    const statuses = React.useMemo(() => {
+        if (!allPutwallData) return [];
+        return [...new Set(allPutwallData.map(item => item.status))].sort();
+    }, [allPutwallData]);
+
+    const zones = React.useMemo(() => {
+        if (!allPutwallData) return [];
+        return [...new Set(allPutwallData.map(item => item.zone))].sort();
+    }, [allPutwallData]);
+
+    const handleIssueClick = (replenLocation: string) => {
+        setSelectedIssue(replenLocation);
     };
 
     const handleCloseModal = () => {
         setSelectedIssue(null);
     };
 
+    const handleFilterChange = (name: string, value: string) => {
+        setFilters(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleClearFilters = () => {
+        setFilters({
+            status: '',
+            zone: ''
+        });
+    };
+
     // Calculate total issue count
-    const totalIssueCount = data
-        ? data.reduce((total, issue) => total + issue.count, 0)
+    const totalIssueCount = issuesData
+        ? issuesData.reduce((total, issue) => total + issue.count, 0)
         : 0;
 
-    const replensData = data
-        ? data.map(issue => {
-            const matches = issue.repln_pick_locaion.match(/PRI:\s*(\d+)-(\w+)\s*Loc:\s*(.+)$/);
-            return matches
-                ? {
-                    priority: parseInt(matches[1], 10),
-                    work_status: matches[2],
-                    location: matches[3],
-                    count: issue.count
-                }
-                : null;
-        }).filter(item => item !== null)
-            .reduce((acc: { priority: number; work_status: string; count: number }[], curr) => {
-                const existing = acc.find(item =>
-                    item.priority === curr.priority &&
-                    item.work_status === curr.work_status
-                );
-                if (existing) {
-                    existing.count += curr.count;
-                } else {
-                    acc.push({...curr});
-                }
-                return acc;
-            }, [] as { priority: number; work_status: string; count: number }[])
-            .sort((a, b) => b.priority - a.priority)
-        : [];
+    // Loading and error states
+    const isLoading = issuesLoading || dataLoading;
+    const hasError = issuesError || dataError;
 
     return (
         <div className="details-container">
-            <h2>Replenishment Location Issues</h2>
-            {isLoading && <div className="loading">Loading issues...</div>}
-            {data && data.length === 0 && (
-                <div className="no-data">No issues found</div>
-            )}
-            {data && data.length > 0 && (
+            <h2>Putwall Details</h2>
+
+            {isLoading && <div className="loading">Loading data...</div>}
+
+            {allPutwallData && (
                 <>
-                    <div className="issues-list">
-                        <table className="data-table">
-                            <thead>
-                            <tr>
-                                <th>Priority</th>
-                                <th>Work Status</th>
-                                <th>Count</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {replensData.map((replens: { priority: number; work_status: string; count: number }) => (
-                                <tr key={replens.priority}>
-                                    <td>{replens.priority}</td>
-                                    <td>{replens.work_status}</td>
-                                    <td>{replens.count}</td>
-                                    <td>
-                                        <button
-                                            className="view-btn"
-                                            onClick={() => handleIssueClick(replens.priority, replens.work_status)}
-                                        >
-                                            View Details
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                    <FilterBar
+                        statuses={statuses}
+                        zones={zones}
+                        filters={filters}
+                        onChange={handleFilterChange}
+                        onClear={handleClearFilters}
+                    />
+
+                    <div className="tabbed-view">
+                        <div className="tab-headers">
+                            <div
+                                className={`tab-header ${activeTab === 'issues' ? 'active' : ''}`}
+                                onClick={() => handleTabClick('issues')}
+                            >
+                                Issues
+                            </div>
+                            <div
+                                className={`tab-header ${activeTab === 'all' ? 'active' : ''}`}
+                                onClick={() => handleTabClick('all')}
+                            >
+                                All Items
+                            </div>
+                        </div>
+
+                        <div className="tab-content">
+                            {/* Issues Tab */}
+                            <div className={`tab-panel ${activeTab === 'issues' ? 'active' : ''}`}>
+                                {/* Issues content remains the same */}
+                            </div>
+
+                            {/* All Items Tab */}
+                            <div className={`tab-panel ${activeTab === 'all' ? 'active' : ''}`}>
+                                <h3>All Putwall Items</h3>
+
+                                {/* Use the filtered data from the server */}
+                                {allPutwallData && (
+                                    <>
+                                        <div className="data-summary">
+                                            <span>Showing {allPutwallData.length} items</span>
+                                        </div>
+
+                                        <table className="data-table">
+                                            <thead>
+                                            <tr>
+                                                <th>Zone</th>
+                                                <th>Cubby</th>
+                                                <th>Item Number</th>
+                                                <th>Container ID</th>
+                                                <th>Status</th>
+                                                <th>Order Number</th>
+                                                <th>Priority</th>
+                                                <th>Replen Location</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {allPutwallData.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={8} className="no-data">No data matching current filters</td>
+                                                </tr>
+                                            ) : (
+                                                allPutwallData.map(item => (
+                                                    <tr key={item.id}>
+                                                        <td>{item.zone}</td>
+                                                        <td>{item.cubby}</td>
+                                                        <td>{item.item_number}</td>
+                                                        <td>{item.container_id}</td>
+                                                        <td>
+                                                            <span className={`status-indicator status-${item.status.toLowerCase()}`}></span>
+                                                            {item.status}
+                                                        </td>
+                                                        <td>{item.order_number}</td>
+                                                        <td className={`priority-${item.priority <= 2 ? 'high' : item.priority <= 3 ? 'medium' : 'low'}`}>
+                                                            {item.priority}
+                                                        </td>
+                                                        <td>{item.repln_pick_locaion}</td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                            </tbody>
+                                        </table>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </>
             )}
+
             {selectedIssue && (
                 <IssueModal
                     replenLocation={selectedIssue}
+                    filters={filters}
                     onClose={handleCloseModal}
                 />
             )}
