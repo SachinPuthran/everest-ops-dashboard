@@ -471,6 +471,10 @@
     border-color: #ccc;
 }
 
+.container-id-filter-box {
+    margin-top: 20px;
+}
+
 .export-excel-btn {
     align-self: flex-end;
     background-color: #f1f1f1;

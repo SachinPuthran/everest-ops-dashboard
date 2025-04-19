@@ -84,24 +84,20 @@ export interface ReplenishmentSortConfig {
 
 // UnitSort types
 export interface UnitSortSummary {
-    container_count: number;
-    total_allocated: number;
-    total_unallocated: number;
-    total_replen: number;
+    PackageCount: number;
+    UnitCount: number;
+    ReleasedUnits: number;
+    AllocatedUnits: number;
+    UnallocatedUnits: number;
+    ReplenSKUCount: number;
 }
 
 export interface UnitSortItem {
-    id: number;
     container_id: string;
-    packlane: string;
-    item_count: number;
-    order_date: string;
-    RELEASED: number;
-    PICKED: number;
-    allocated_picks: number;
-    unallocated_picks: number;
-    replen_item_numbers_count: number;
-    pick_items: string;
+    ItemCount: number;
+    ReleasedUnits: number;
+    AllocatedUnits: number;
+    UnallocatedUnits: number;
 }
 
 // UI component prop types

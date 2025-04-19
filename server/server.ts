@@ -389,11 +389,13 @@ app.get('/api/unitsort/summary', async (req, res) => {
     try {
         const db = await dbPromise;
         const countData = await db.get(`
-            SELECT COUNT(DISTINCT container_id)   as container_count,
-                   SUM(allocated_picks)           as total_allocated,
-                   SUM(unallocated_picks)         as total_unallocated,
-                   SUM(replen_item_numbers_count) as total_replen
-            FROM unitsort
+            select count(distinct container_id)                as PackageCount,
+                   sum(cast(item_count as int))                as UnitCount,
+                   sum(cast(RELEASED as int))                  as ReleasedUnits,
+                   sum(cast(allocated_picks as int))           as AllocatedUnits,
+                   sum(cast(unallocated_picks as int))         as UnallocatedUnits,
+                   sum(cast(replen_item_numbers_count as int)) as ReplenSKUCount
+            from unitsort
         `);
         res.header('Access-Control-Allow-Origin', '*');
         res.json(countData);
@@ -401,6 +403,30 @@ app.get('/api/unitsort/summary', async (req, res) => {
         console.error('Error fetching unitsort summary:', error);
         res.header('Access-Control-Allow-Origin', '*');
         res.status(500).json({error: 'Failed to fetch unitsort summary'});
+    }
+});
+
+app.get('/api/unitsort/data', async (req, res) => {
+    try {
+        const db = await dbPromise;
+        const {containerId} = req.query;
+
+        let query = 'select container_id, sum(cast(item_count as int))        as ItemCount, sum(cast(RELEASED as int))          as ReleasedUnits, sum(cast(allocated_picks as int))   as AllocatedUnits, sum(cast(unallocated_picks as int)) as UnallocatedUnits from unitsort where 1=1';
+        const params = [];
+
+        if (containerId) {
+            query += ' AND container_id like ?';
+            params.push(`${containerId}%`);
+        }
+
+        query += ' group by container_id, pick_items';
+        const data = await db.all(query, params);
+        res.header('Access-Control-Allow-Origin', '*');
+        res.json(data);
+    } catch (error) {
+        console.error('Error fetching unitsort issues:', error);
+        res.header('Access-Control-Allow-Origin', '*');
+        res.status(500).json({error: 'Failed to fetch unitsort issues'});
     }
 });
 

@@ -64,6 +64,19 @@ export const fetchUnitSortSummary = async () => {
     return response.data;
 };
 
+export const fetchUnitSortData = async (filters = {}) => {
+    const queryParams = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value) {
+            queryParams.append(key, value.toString());
+        }
+    });
+
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const response = await apiClient.get(`/unitsort/data${queryString}`);
+    return response.data;
+};
+
 export const fetchUnitSortIssues = async () => {
     const response = await apiClient.get('/unitsort/issues');
     return response.data;
