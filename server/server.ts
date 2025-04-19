@@ -279,19 +279,33 @@ app.get('/api/putwall/data', async (req, res) => {
     try {
         const db = await dbPromise;
 
-        const { status, zone } = req.query;
+        const { status, zone, cubbyStatus } = req.query;
 
-        let query = 'SELECT * FROM putwall WHERE 1=1';
+        let query = 'SELECT * FROM putwall t WHERE 1=1';
         const params = [];
 
         if (status) {
-            query += ' AND status = ?';
+            query += ' AND t.status = ?';
             params.push(status);
         }
 
         if (zone) {
-            query += ' AND zone = ?';
-            params.push(zone);
+            console.log(zone)
+            query += ' AND t.zone like ?';
+            console.log(query)
+            params.push(`${zone}%`);
+            console.log(params)
+        }
+
+        if (cubbyStatus) {
+            switch (cubbyStatus) {
+                case 'PACKREADY': query += ' AND NOT EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id)'; break;
+                case 'ONCONVEYOR': query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (type = \'Y\')'; break;
+                case 'PARTIALLYPICKED': query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (status = \'RELEASED\')'; break;
+                case 'WAITINGFORREPLENS': query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (repln_pick_locaion like \'REPLEN:%\')'; break;
+                case 'NOREPLENS': query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (repln_pick_locaion like \'%NO REPLENS%\')'; break;
+                case 'EMPTYCUBBY': query += ' AND container_id = \'NULL\''; break;
+            }
         }
 
         const data = await db.all(query, params);

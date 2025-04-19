@@ -26,11 +26,6 @@ export const fetchPutwallSummary = async () => {
     return response.data;
 };
 
-export const fetchPutwallIssues = async () => {
-    const response = await apiClient.get('/putwall/issues');
-    return response.data;
-};
-
 export const fetchPutwallData = async (filters = {}) => {
     const queryParams = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -41,19 +36,6 @@ export const fetchPutwallData = async (filters = {}) => {
 
     const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
     const response = await apiClient.get(`/putwall/data${queryString}`);
-    return response.data;
-};
-
-export const fetchPutwallIssueDetails = async (replen: string, filters = {}) => {
-    const queryParams = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
-            queryParams.append(key, value.toString());
-        }
-    });
-
-    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
-    const response = await apiClient.get(`/putwall/issue-details/${encodeURIComponent(replen)}${queryString}`);
     return response.data;
 };
 

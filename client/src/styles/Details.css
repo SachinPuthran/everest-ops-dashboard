@@ -471,6 +471,39 @@
     border-color: #ccc;
 }
 
+.export-excel-btn {
+    align-self: flex-end;
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s ease;
+}
+
+.export-excel-btn:hover {
+    background-color: #e6e6e6;
+    border-color: #ccc;
+}
+
+.view-details-btn {
+    align-self: flex-end;
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-details-btn:hover {
+    background-color: #e6e6e6;
+    border-color: #ccc;
+}
+
 /* Status indicators */
 .status-indicator {
     display: inline-block;
