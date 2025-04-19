@@ -46,7 +46,15 @@ export const fetchReplenishmentSummary = async () => {
 };
 
 export const fetchReplenishmentData = async (filters = {}) => {
-    const response = await apiClient.get('/replenishment/data', { params: filters });
+    const queryParams = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value) {
+            queryParams.append(key, value.toString());
+        }
+    });
+
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const response = await apiClient.get(`/replenishment/data${queryString}`);
     return response.data;
 };
 

@@ -245,7 +245,7 @@ async function insertSampleUnitSortData(db: Database) {
             allocated,
             unallocated,
             replen,
-            JSON.stringify(Array.from({ length: Math.floor(Math.random() * 10) + 1 }, (_, i) => `ITEM-${Math.floor(Math.random() * 1000)}`))
+            JSON.stringify(Array.from({length: Math.floor(Math.random() * 10) + 1}, (_, i) => `ITEM-${Math.floor(Math.random() * 1000)}`))
         ]);
     }
 }
@@ -255,7 +255,7 @@ app.get('/api/putwall/summary', async (req, res) => {
     try {
         const db = await dbPromise;
         const summary = await db.all(`
-            select substr(zone, 1, 3)  as zone,
+            select substr(zone, 1, 3) as zone,
                    sum(case when NOT EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) then 1 else 0 end) as PackReadyCount,
                    sum(case when EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (type = 'Y') then 1 else 0 end) as OnConveyorCount,
                    sum(case when EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (status = 'RELEASED') then 1 else 0 end) as PartiallyPickedCount,
@@ -271,7 +271,7 @@ app.get('/api/putwall/summary', async (req, res) => {
     } catch (error) {
         console.error('Error fetching putwall summary:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({ error: 'Failed to fetch putwall summary' });
+        res.status(500).json({error: 'Failed to fetch putwall summary'});
     }
 });
 
@@ -279,7 +279,7 @@ app.get('/api/putwall/data', async (req, res) => {
     try {
         const db = await dbPromise;
 
-        const { status, zone, cubbyStatus } = req.query;
+        const {status, zone, cubbyStatus} = req.query;
 
         let query = 'SELECT * FROM putwall t WHERE 1=1';
         const params = [];
@@ -290,21 +290,30 @@ app.get('/api/putwall/data', async (req, res) => {
         }
 
         if (zone) {
-            console.log(zone)
             query += ' AND t.zone like ?';
-            console.log(query)
             params.push(`${zone}%`);
-            console.log(params)
         }
 
         if (cubbyStatus) {
             switch (cubbyStatus) {
-                case 'PACKREADY': query += ' AND NOT EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id)'; break;
-                case 'ONCONVEYOR': query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (type = \'Y\')'; break;
-                case 'PARTIALLYPICKED': query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (status = \'RELEASED\')'; break;
-                case 'WAITINGFORREPLENS': query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (repln_pick_locaion like \'REPLEN:%\')'; break;
-                case 'NOREPLENS': query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (repln_pick_locaion like \'%NO REPLENS%\')'; break;
-                case 'EMPTYCUBBY': query += ' AND container_id = \'NULL\''; break;
+                case 'PACKREADY':
+                    query += ' AND NOT EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id)';
+                    break;
+                case 'ONCONVEYOR':
+                    query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (type = \'Y\')';
+                    break;
+                case 'PARTIALLYPICKED':
+                    query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (status = \'RELEASED\')';
+                    break;
+                case 'WAITINGFORREPLENS':
+                    query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (repln_pick_locaion like \'REPLEN:%\')';
+                    break;
+                case 'NOREPLENS':
+                    query += ' AND EXISTS (select 1 from putwall where t.cubby = cubby and cubby != location_id) and (repln_pick_locaion like \'%NO REPLENS%\')';
+                    break;
+                case 'EMPTYCUBBY':
+                    query += ' AND container_id = \'NULL\'';
+                    break;
             }
         }
 
@@ -315,37 +324,7 @@ app.get('/api/putwall/data', async (req, res) => {
     } catch (error) {
         console.error('Error fetching putwall data:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({ error: 'Failed to fetch putwall data' });
-    }
-});
-
-app.get('/api/putwall/issue-details/:replen', async (req, res) => {
-    try {
-        const db = await dbPromise;
-
-        const { status, zone } = req.query;
-
-        let query = `SELECT * FROM putwall WHERE repln_pick_locaion like '%${req.params.replen}%'`;
-        const params = [];
-
-        if (status) {
-            query += ' AND status = ?';
-            params.push(status);
-        }
-
-        if (zone) {
-            query += ' AND zone = ?';
-            params.push(zone);
-        }
-
-        const details = await db.all(query, params);
-
-        res.header('Access-Control-Allow-Origin', '*');
-        res.json(details);
-    } catch (error) {
-        console.error('Error fetching putwall issue details:', error);
-        res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({ error: 'Failed to fetch putwall issue details' });
+        res.status(500).json({error: 'Failed to fetch putwall data'});
     }
 });
 
@@ -354,29 +333,54 @@ app.get('/api/replenishment/summary', async (req, res) => {
     try {
         const db = await dbPromise;
         const summary = await db.all(`
-            SELECT pack_lane, COUNT(*) as count
+            SELECT pack_lane, SUM(replen_qty) as count
             FROM replenishment
-            GROUP BY pack_lane
+            group by pack_lane
+            order by pack_lane
         `);
         res.header('Access-Control-Allow-Origin', '*');
         res.json(summary);
     } catch (error) {
         console.error('Error fetching replenishment summary:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({ error: 'Failed to fetch replenishment summary' });
+        res.status(500).json({error: 'Failed to fetch replenishment summary'});
     }
 });
 
 app.get('/api/replenishment/data', async (req, res) => {
     try {
         const db = await dbPromise;
-        const data = await db.all('SELECT * FROM replenishment');
+        const {pack_lane, zone, priority} = req.query;
+
+        let query = 'SELECT pack_lane, work_type, case when from_location_id like \'%-%\' then substr(from_location_id, 1, 2) else from_location_id end as zone, priority, SUM(replen_qty) as TotalReplenUnits, SUM(case when demand_qty is null then 0 else demand_qty end) as TotalDemand from replenishment where 1=1';
+
+        const params = [];
+
+        if (pack_lane) {
+            query += ' AND pack_lane = ?';
+            params.push(pack_lane);
+        }
+
+        if (zone) {
+            query += ' AND (from_location_id like ? OR from_location_id = ?)';
+            params.push(`${zone}%`);
+            params.push(zone);
+        }
+
+        if (priority) {
+            query += ' AND priority = ?';
+            params.push(priority);
+        }
+
+        query += ' group by 1, 2, 3, 4 order by 2, 3, 4'
+        const data = await db.all(query, params);
+
         res.header('Access-Control-Allow-Origin', '*');
         res.json(data);
     } catch (error) {
         console.error('Error fetching replenishment data:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({ error: 'Failed to fetch replenishment data' });
+        res.status(500).json({error: 'Failed to fetch replenishment data'});
     }
 });
 
@@ -385,11 +389,10 @@ app.get('/api/unitsort/summary', async (req, res) => {
     try {
         const db = await dbPromise;
         const countData = await db.get(`
-            SELECT
-                COUNT(DISTINCT container_id) as container_count,
-                SUM(allocated_picks) as total_allocated,
-                SUM(unallocated_picks) as total_unallocated,
-                SUM(replen_item_numbers_count) as total_replen
+            SELECT COUNT(DISTINCT container_id)   as container_count,
+                   SUM(allocated_picks)           as total_allocated,
+                   SUM(unallocated_picks)         as total_unallocated,
+                   SUM(replen_item_numbers_count) as total_replen
             FROM unitsort
         `);
         res.header('Access-Control-Allow-Origin', '*');
@@ -397,7 +400,7 @@ app.get('/api/unitsort/summary', async (req, res) => {
     } catch (error) {
         console.error('Error fetching unitsort summary:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({ error: 'Failed to fetch unitsort summary' });
+        res.status(500).json({error: 'Failed to fetch unitsort summary'});
     }
 });
 
@@ -405,23 +408,24 @@ app.get('/api/unitsort/issues', async (req, res) => {
     try {
         const db = await dbPromise;
         const issues = await db.all(`
-      SELECT *
-      FROM unitsort
-      WHERE unallocated_picks > 0 AND replen_item_numbers_count > 0
-    `);
+            SELECT *
+            FROM unitsort
+            WHERE unallocated_picks > 0
+              AND replen_item_numbers_count > 0
+        `);
         res.header('Access-Control-Allow-Origin', '*');
         res.json(issues);
     } catch (error) {
         console.error('Error fetching unitsort issues:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({ error: 'Failed to fetch unitsort issues' });
+        res.status(500).json({error: 'Failed to fetch unitsort issues'});
     }
 });
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+    res.status(200).json({status: 'healthy', timestamp: new Date().toISOString()});
 });
 
 // Initialize database and start server

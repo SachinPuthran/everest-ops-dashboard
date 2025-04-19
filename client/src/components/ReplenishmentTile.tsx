@@ -1,8 +1,8 @@
 import React from 'react';
-import { useQuery } from 'react-query';
-import { fetchReplenishmentSummary } from '../api/api';
-import { ReplenishmentSummaryItem, TileProps } from '../types';
-import { Bar } from 'react-chartjs-2';
+import {useQuery} from 'react-query';
+import {fetchReplenishmentSummary} from '../api/api';
+import {ReplenishmentSummaryItem, TileProps} from '../types';
+import {Bar} from 'react-chartjs-2';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -25,8 +25,8 @@ ChartJS.register(
     Legend
 );
 
-const ReplenishmentTile: React.FC<TileProps> = ({ isActive, onClick }) => {
-    const { data, isLoading, error } = useQuery<ReplenishmentSummaryItem[]>(
+const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
+    const {data, isLoading, error} = useQuery<ReplenishmentSummaryItem[]>(
         'replenishmentSummary',
         fetchReplenishmentSummary
     );
@@ -73,12 +73,6 @@ const ReplenishmentTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                     text: 'Count'
                 }
             },
-            x: {
-                title: {
-                    display: true,
-                    text: 'Pack Lane'
-                }
-            }
         },
         plugins: {
             legend: {
@@ -86,7 +80,7 @@ const ReplenishmentTile: React.FC<TileProps> = ({ isActive, onClick }) => {
             },
             tooltip: {
                 callbacks: {
-                    label: function(context) {
+                    label: function (context) {
                         return `Count: ${context.raw}`;
                     }
                 }
@@ -94,36 +88,22 @@ const ReplenishmentTile: React.FC<TileProps> = ({ isActive, onClick }) => {
         }
     };
 
-    // Calculate total items and find highest count lane
     const totalItems = data.reduce((sum, item) => sum + item.count, 0);
-    const highestLane = data.reduce((highest, item) =>
-            item.count > highest.count ? item : highest,
-        { pack_lane: '', count: 0 }
-    );
-
-    // Determine if any lane is above threshold (e.g., 25% of total)
-    const thresholdPercent = 25;
-    const highLanePercent = totalItems > 0
-        ? Math.round((highestLane.count / totalItems) * 100)
-        : 0;
-    const hasHighConcentration = highLanePercent > thresholdPercent;
 
     return (
-        <div className={`tile ${isActive ? 'active' : ''} ${hasHighConcentration ? 'alert' : ''}`} onClick={onClick}>
+        <div className={`tile ${isActive ? 'active' : ''}`} onClick={onClick}>
             <h2>Replenishment</h2>
             <div className="tile-content">
                 <div className="chart-container">
-                    <Bar data={chartData} options={chartOptions} />
+                    <Bar data={chartData} options={chartOptions}/>
                 </div>
                 <div className="summary-container">
                     <h3>Pack Lane Counts</h3>
                     <ul>
+                        <li className="divider"></li>
                         {data.map(item => (
-                            <li key={item.pack_lane} className={item.pack_lane === highestLane.pack_lane && hasHighConcentration ? 'alert-item' : ''}>
+                            <li key={item.pack_lane}>
                                 <span className="lane">{item.pack_lane}:</span> {item.count}
-                                {item.pack_lane === highestLane.pack_lane && hasHighConcentration && (
-                                    <span className="badge warning">{highLanePercent}%</span>
-                                )}
                             </li>
                         ))}
                     </ul>
@@ -133,10 +113,6 @@ const ReplenishmentTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                 </div>
             </div>
             <div className="tile-footer">
-                <span>Click to view details</span>
-                {hasHighConcentration && (
-                    <span className="alert-indicator">High concentration in {highestLane.pack_lane}</span>
-                )}
             </div>
         </div>
     );
