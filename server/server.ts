@@ -424,27 +424,26 @@ app.get('/api/unitsort/data', async (req, res) => {
         res.header('Access-Control-Allow-Origin', '*');
         res.json(data);
     } catch (error) {
-        console.error('Error fetching unitsort issues:', error);
+        console.error('Error fetching unitsort data:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({error: 'Failed to fetch unitsort issues'});
+        res.status(500).json({error: 'Failed to fetch unitsort data'});
     }
 });
 
-app.get('/api/unitsort/issues', async (req, res) => {
+app.get('/api/container', async (req, res) => {
     try {
         const db = await dbPromise;
-        const issues = await db.all(`
-            SELECT *
-            FROM unitsort
-            WHERE unallocated_picks > 0
-              AND replen_item_numbers_count > 0
-        `);
+        const {container_id} = req.query;
+
+        const query = 'select container_id, order_number, status, item_number, pick_area from pickdetail where container_id = ?';
+        const params = [container_id];
+        const data = await db.all(query, params);
         res.header('Access-Control-Allow-Origin', '*');
-        res.json(issues);
+        res.json(data);
     } catch (error) {
-        console.error('Error fetching unitsort issues:', error);
+        console.error('Error fetching container details:', error);
         res.header('Access-Control-Allow-Origin', '*');
-        res.status(500).json({error: 'Failed to fetch unitsort issues'});
+        res.status(500).json({error: 'Failed to fetch container details'});
     }
 });
 

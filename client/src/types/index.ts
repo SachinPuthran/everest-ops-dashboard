@@ -100,6 +100,14 @@ export interface UnitSortItem {
     UnallocatedUnits: number;
 }
 
+export interface ContainerDetail {
+    container_id: string;
+    order_number: string;
+    status: string;
+    item_number: string;
+    pick_area: string;
+}
+
 // UI component prop types
 export interface TileProps {
     isActive: boolean;
