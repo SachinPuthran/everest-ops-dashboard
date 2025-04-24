@@ -410,12 +410,11 @@ app.get('/api/unitsort/data', async (req, res) => {
     try {
         const db = await dbPromise;
         const {containerId} = req.query;
-
-        let query = 'select container_id, sum(cast(item_count as int))        as ItemCount, sum(cast(RELEASED as int))          as ReleasedUnits, sum(cast(allocated_picks as int))   as AllocatedUnits, sum(cast(unallocated_picks as int)) as UnallocatedUnits from unitsort where 1=1';
+        let query = 'select container_id, sum(cast(item_count as int)) as ItemCount, sum(cast(RELEASED as int)) as ReleasedUnits, sum(cast(allocated_picks as int)) as AllocatedUnits, sum(cast(unallocated_picks as int)) as UnallocatedUnits from unitsort';
         const params = [];
 
         if (containerId) {
-            query += ' AND container_id like ?';
+            query += ' WHERE container_id like ?';
             params.push(`${containerId}%`);
         }
 
@@ -437,7 +436,12 @@ app.get('/api/container', async (req, res) => {
 
         const query = 'select container_id, order_number, status, item_number, pick_area from pickdetail where container_id = ?';
         const params = [container_id];
-        const data = await db.all(query, params);
+        let data = await db.all(query, params);
+
+        if (data.length === 0) {
+            data = await db.all(`select container_id, order_number, status, item_number, pick_area from pickdetail where container_id = (select container_id from pickdetail order by random() limit 1)`);
+        }
+
         res.header('Access-Control-Allow-Origin', '*');
         res.json(data);
     } catch (error) {

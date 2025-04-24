@@ -54,17 +54,17 @@ const UnitSortTile: React.FC<TileProps> = ({isActive, onClick}) => {
                 backgroundColor: [
                     'rgba(75, 192, 192, 0.6)',
                     'rgba(255, 99, 132, 0.6)',
-                    'rgba(41,128,84,0.6)',
-                    'rgba(119,106,57,0.6)',
-                    'rgba(60,225,14,0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 159, 64, 0.6)',
+                    'rgba(153, 102, 255, 0.6)',
                     'rgba(255, 206, 86, 0.6)'
                 ],
                 borderColor: [
                     'rgba(75, 192, 192, 1)',
-                    'rgb(56,80,61)',
-                    'rgb(28,108,108)',
-                    'rgb(158,128,107)',
                     'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(153, 102, 255, 1)',
                     'rgba(255, 206, 86, 1)'
                 ],
                 borderWidth: 1,
@@ -80,9 +80,9 @@ const UnitSortTile: React.FC<TileProps> = ({isActive, onClick}) => {
                 position: 'bottom',
                 labels: {
                     font: {
-                        size: 12
+                        size: 10
                     },
-                    padding: 10
+                    padding: 4
                 }
             },
             tooltip: {
@@ -109,6 +109,7 @@ const UnitSortTile: React.FC<TileProps> = ({isActive, onClick}) => {
                 <div className="summary-container">
                     <h3>Container Summary</h3>
                     <ul>
+                        <li className="divider"></li>
                         <li><span className="label">Package Count:</span> {data.PackageCount}</li>
                         <li><span className="label">Unit Count:</span> {data.UnitCount}</li>
                         <li><span className="label">Released Units:</span> {data.ReleasedUnits}</li>

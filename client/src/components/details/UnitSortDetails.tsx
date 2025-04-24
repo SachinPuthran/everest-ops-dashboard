@@ -100,7 +100,7 @@ const UnitSortDetails: React.FC = () => {
         () => fetchUnitSortData(filters),
         {
             refetchOnWindowFocus: false,
-            keepPreviousData: true
+            keepPreviousData: false
         }
     );
 
@@ -151,7 +151,7 @@ const UnitSortDetails: React.FC = () => {
 
     return (
         <div className="details-container">
-            <h2>Putwall Details</h2>
+            <h2>Unit Sort Details</h2>
             <FilterBar
                 filters={filters}
                 onChange={handleFilterChange}

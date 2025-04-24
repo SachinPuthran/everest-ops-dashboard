@@ -84,20 +84,20 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                 label: "Putwall Summary",
                 data: pieData,
                 backgroundColor: [
-                    "#007bff", // Blue for PackReady
-                    "#28a745", // Green for OnConveyor
-                    "#ffc107", // Yellow for PartiallyPicked
-                    "#fd7e14", // Orange for WaitingForReplens
-                    "#ff3838", // Red for NoReplens
-                    "#6c757d", // Grey for EmptyCubby
+                    "#4287f5",
+                    "#34c759",
+                    "#ffcf2f",
+                    "#ff8c2a",
+                    "#ff4545",
+                    "#7f8c8d",
                 ],
                 borderColor: [
-                    "#0056b3",
-                    "#19692c",
-                    "#cc9a06",
-                    "#b85306",
-                    "#b01e1e",
-                    "#52575c",
+                    "#1a56b3",
+                    "#1e8a3c",
+                    "#d4a80f",
+                    "#cc6611",
+                    "#cc2525",
+                    "#5f6769",
                 ],
                 borderWidth: 1,
             },
@@ -112,9 +112,9 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                 position: 'bottom',
                 labels: {
                     font: {
-                        size: 12
+                        size: 10
                     },
-                    padding: 10
+                    padding: 4
                 }
             },
             tooltip: {

@@ -69,7 +69,7 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
             y: {
                 beginAtZero: true,
                 title: {
-                    display: true,
+                    display: false,
                     text: 'Count'
                 }
             },
