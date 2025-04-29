@@ -48,8 +48,8 @@ const Dashboard: React.FC = () => {
             <div className="dashboard-content">
                 {activeTab === 'putwall' && (
                     <PutwallTile 
-                        isActive={activeDetail === 'putwall'} 
-                        onClick={() => handleTileClick('putwall')} 
+                        isActive={activeDetail === 'putwall'}
+                        onClick={() => {}}
                     />
                 )}
                 {activeTab === 'replenishment' && (
@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className={`details-section ${activeDetail ? 'active' : ''}`}>
-                {activeDetail === 'putwall' && <PutwallDetails />}
+                {/*{activeDetail === 'putwall' && <PutwallDetails />}*/}
                 {activeDetail === 'replenishment' && <ReplenishmentDetails />}
                 {activeDetail === 'unitsort' && <UnitSortDetails />}
             </div>

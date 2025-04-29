@@ -90,6 +90,23 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
         y: 0
     });
 
+    // State for chute tooltip
+    const [chuteTooltipInfo, setChuteTooltipInfo] = useState<{ 
+        visible: boolean, 
+        chute: string, 
+        zone: string,
+        chuteSummary: PutwallSummaryItem | null,
+        x: number, 
+        y: number 
+    }>({
+        visible: false,
+        chute: '',
+        zone: '',
+        chuteSummary: null,
+        x: 0,
+        y: 0
+    });
+
     // Reference to track if a component is mounted
     const isMounted = useRef(true);
 
@@ -242,6 +259,29 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
         });
     };
 
+    // Handle mouse enter on chute label
+    const handleChuteMouseEnter = (e: React.MouseEvent, chute: string, zone: string) => {
+        const chuteSummary = summaryData?.find(summary => summary.zone.endsWith(zone));
+        if (chuteSummary) {
+            setChuteTooltipInfo({
+                visible: true,
+                chute,
+                zone,
+                chuteSummary,
+                x: e.clientX,
+                y: e.clientY
+            });
+        }
+    };
+
+    // Handle mouse leave on chute label
+    const handleChuteMouseLeave = () => {
+        setChuteTooltipInfo({
+            ...chuteTooltipInfo,
+            visible: false
+        });
+    };
+
     // Check if either API call is loading
     const isLoading = isSummaryLoading || isCubbiesLoading;
 
@@ -297,32 +337,47 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                                     Zone {zone}
                                 </div>
                                 <div className="zone-matrix">
-                                    {chutes.map(chute => (columns.map(column => (
-                                        <div key={`${zone}-${column}`} className="zone-row">
-                                            {cubbyNumbers.map(cubbyNumber => {
-                                                // Find the cubby for this zone, column, and cubbyNumber
-                                                const cubby = zoneCubbies.find(c => 
-                                                    c.wall == chute && c.column === column && c.number === cubbyNumber
-                                                );
+                                    <div className="chutes-container">
+                                        {chutes.map(chute => (
+                                            <div key={`${zone}-${chute}`} className="chute">
+                                                <div 
+                                                    className="chute-label"
+                                                    onMouseEnter={(e) => handleChuteMouseEnter(e, chute, zone)}
+                                                    onMouseLeave={handleChuteMouseLeave}
+                                                >
+                                                    Chute {chute}
+                                                </div>
+                                                <div className="chute-columns">
+                                                    {columns.map(column => (
+                                                        <div key={`${zone}-${chute}-${column}`} className="zone-row">
+                                                            {cubbyNumbers.map(cubbyNumber => {
+                                                                // Find the cubby for this zone, chute, column, and cubbyNumber
+                                                                const cubby = zoneCubbies.find(c => 
+                                                                    c.wall === chute && c.column === column && c.number === cubbyNumber
+                                                                );
 
-                                                // If no cubby exists for this position, render an empty cell
-                                                if (!cubby) {
-                                                    return <div key={`${zone}-${column}-${cubbyNumber}`} className="cubby-placeholder"></div>;
-                                                }
+                                                                // If no cubby exists for this position, render an empty cell
+                                                                if (!cubby) {
+                                                                    return <div key={`${zone}-${chute}-${column}-${cubbyNumber}`} className="cubby-placeholder"></div>;
+                                                                }
 
-                                                return (
-                                                    <div 
-                                                        key={cubby.id}
-                                                        className={`cubby ${cubby.status}`}
-                                                        onMouseEnter={(e) => handleCubbyMouseEnter(e, cubby)}
-                                                        onMouseLeave={handleCubbyMouseLeave}
-                                                    >
-                                                        <span className="cubby-id">{cubby.column + cubby.number}</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ))))}
+                                                                return (
+                                                                    <div 
+                                                                        key={cubby.id}
+                                                                        className={`cubby ${cubby.status}`}
+                                                                        onMouseEnter={(e) => handleCubbyMouseEnter(e, cubby)}
+                                                                        onMouseLeave={handleCubbyMouseLeave}
+                                                                    >
+                                                                        <span className="cubby-id">{cubby.column + cubby.number}</span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -339,8 +394,8 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                         }}
                     >
                         <h4>Cubby {cubbyTooltipInfo.cubby.cubby}</h4>
-                        <p>Status: {cubbyTooltipInfo.cubby.status}</p>
-                        <p>Container Count: {cubbyTooltipInfo.cubby.containerCount}</p>
+                        <p>Current Status: {cubbyTooltipInfo.cubby.status}</p>
+                        <p>Containers Processed: {cubbyTooltipInfo.cubby.containerCount}</p>
                         <h5>Average Time in Status (minutes):</h5>
                         <ul>
                             <li>Pack Ready: {cubbyTooltipInfo.cubby.averageTimeInStatus.packReady}</li>
@@ -370,6 +425,28 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                             <li>Waiting for Replenishment: {zoneTooltipInfo.summary.WaitingForReplensCount}</li>
                             <li>No Replenishments: {zoneTooltipInfo.summary.NoReplensCount}</li>
                             <li>Empty Cubbies: {zoneTooltipInfo.summary.EmptyCubbyCount}</li>
+                        </ul>
+                    </div>
+                )}
+
+                {/* Chute tooltip */}
+                {chuteTooltipInfo.visible && chuteTooltipInfo.chuteSummary && (
+                    <div 
+                        className="chute-tooltip"
+                        style={{
+                            top: chuteTooltipInfo.y + 10,
+                            left: chuteTooltipInfo.x + 10
+                        }}
+                    >
+                        <h4>Chute {chuteTooltipInfo.chute}</h4>
+                        <p>Zone: {chuteTooltipInfo.zone}</p>
+                        <ul>
+                            <li>Pack Ready: {chuteTooltipInfo.chuteSummary.PackReadyCount}</li>
+                            <li>On Conveyor: {chuteTooltipInfo.chuteSummary.OnConveyorCount}</li>
+                            <li>Partially Picked: {chuteTooltipInfo.chuteSummary.PartiallyPickedCount}</li>
+                            <li>Waiting for Replenishment: {chuteTooltipInfo.chuteSummary.WaitingForReplensCount}</li>
+                            <li>No Replenishments: {chuteTooltipInfo.chuteSummary.NoReplensCount}</li>
+                            <li>Empty Cubbies: {chuteTooltipInfo.chuteSummary.EmptyCubbyCount}</li>
                         </ul>
                     </div>
                 )}

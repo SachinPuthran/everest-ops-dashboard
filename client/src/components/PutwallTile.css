@@ -42,6 +42,43 @@
     gap: 5px;
 }
 
+/* Chutes Container */
+.chutes-container {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Chute */
+.chute {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    min-width: 120px;
+}
+
+/* Chute Label */
+.chute-label {
+    padding: 5px;
+    background-color: #617281;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    font-size: 12px;
+}
+
+/* Chute Columns */
+.chute-columns {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    gap: 5px;
+}
+
 /* Zone Row */
 .zone-row {
     display: flex;
@@ -71,6 +108,10 @@
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 1px;
+    padding: 4px;
+    width: 40px;
+    height: 40px;
 }
 
 .cubby:hover {
@@ -103,10 +144,10 @@
 
 /* Cubby Placeholder */
 .cubby-placeholder {
-    aspect-ratio: 1;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.05);
-    border: 1px dashed rgba(0, 0, 0, 0.1);
+    /*aspect-ratio: 1;*/
+    /*border-radius: 4px;*/
+    /*background-color: rgba(0, 0, 0, 0.05);*/
+    /*border: 1px dashed rgba(0, 0, 0, 0.1);*/
 }
 
 /* Tooltip Styles */
@@ -184,6 +225,43 @@
     margin: 3px 0;
 }
 
+/* Chute Tooltip */
+.chute-tooltip {
+    position: fixed;
+    background-color: white;
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 200px;
+    max-width: 250px;
+    border: 1px solid #ddd;
+}
+
+.chute-tooltip h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.chute-tooltip p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.chute-tooltip ul {
+    margin: 5px 0;
+    padding-left: 20px;
+    font-size: 13px;
+}
+
+.chute-tooltip li {
+    margin: 3px 0;
+}
+
 /* Status Legend */
 .status-legend {
     display: flex;
@@ -206,18 +284,22 @@
 
 .legend-color.green {
     background-color: #2ecc71;
+    border: 1px dashed rgba(0, 0, 0, 0.1);
 }
 
 .legend-color.purple {
     background-color: #6c2081;
+    border: 1px dashed rgba(0, 0, 0, 0.1);
 }
 
 .legend-color.white {
     background-color: #ffffff;
+    border: 1px dashed rgba(0, 0, 0, 0.1);
 }
 
 .legend-color.red {
     background-color: #e74c3c;
+    border: 1px dashed rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive adjustments */
@@ -242,6 +324,16 @@
 
     .zone-matrix {
         padding: 5px;
+    }
+
+    .chutes-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .chute {
+        min-width: auto;
+        width: 100%;
     }
 
     .zone-row {
