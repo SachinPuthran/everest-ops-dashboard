@@ -10,7 +10,7 @@
     flex-direction: column;
 }
 
-.tile.replenishment {
+.tile.replenishment, .tile.unitsort {
     height: 80vh;
 }
 
@@ -41,7 +41,7 @@
     position: relative;
 }
 
-.chart-container.replenishment {
+.chart-container.replenishment, .chart-container.unitsort {
     max-height: 50vh;
 }
 
@@ -53,7 +53,7 @@
     overflow-y: auto;
 }
 
-.summary-container.replenishment {
+.summary-container.replenishment, .summary-container.unitsort {
     max-height: 30vh;
 }
 
