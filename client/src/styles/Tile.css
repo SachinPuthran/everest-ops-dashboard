@@ -5,10 +5,13 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border: 1px solid #ddd;
     transition: box-shadow 0.2s;
-    height: 100%;
     width: 100%;
     display: flex;
     flex-direction: column;
+}
+
+.tile.replenishment {
+    height: 80vh;
 }
 
 .tile.active {
@@ -38,12 +41,20 @@
     position: relative;
 }
 
+.chart-container.replenishment {
+    max-height: 50vh;
+}
+
 .summary-container {
     background-color: #f9f9f9;
     padding: 12px;
     border-radius: 6px;
     max-height: 150px;
     overflow-y: auto;
+}
+
+.summary-container.replenishment {
+    max-height: 30vh;
 }
 
 .summary-container h3 {
@@ -118,6 +129,29 @@
     height: 1px;
     background-color: #eee;
     margin: 10px 0;
+}
+
+.lane-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.total-count {
+    color: #4a90e2;
+}
+
+.priority-item {
+    padding-left: 15px !important;
+    font-size: 13px !important;
+}
+
+.priority-range {
+    color: #666;
+    font-weight: 500;
 }
 
 .status-indicator.green {

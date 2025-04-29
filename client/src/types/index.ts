@@ -40,6 +40,12 @@ export interface ReplenishmentSummaryItem {
     count: number;
 }
 
+export interface ReplenishmentSummaryByPriorityItem {
+    pack_lane: string;
+    priority_range: string;
+    count: number;
+}
+
 export interface ReplenishmentItem {
     id: number;
     pack_lane: string;
