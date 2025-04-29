@@ -1,0 +1,121 @@
+/* Replenishment Tile Styles */
+.replenishment-controls {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 0 10px;
+}
+
+.replenishment-controls label {
+    margin-right: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+}
+
+.priority-select {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: white;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.priority-select:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Priority breakdown styles */
+.pack-lane-item {
+    margin-bottom: 12px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+.priority-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px;
+    width: 100%;
+}
+
+.priority-item {
+    display: flex;
+    align-items: center;
+    background-color: #f1f1f1;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.priority-label {
+    font-weight: 600;
+    margin-right: 5px;
+    color: #555;
+}
+
+.priority-count {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Pack lane totals styles */
+.pack-lane-totals {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.pack-lane-totals h4 {
+    font-size: 14px;
+    margin: 0 0 8px 0;
+    color: #555;
+}
+
+.pack-lane-totals ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+}
+
+.pack-lane-totals li {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    font-size: 13px;
+}
+
+/* Legend styles */
+.priority-legend {
+    display: flex;
+    justify-content: center;
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .replenishment-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .replenishment-controls label {
+        margin-bottom: 5px;
+    }
+
+    .priority-select {
+        width: 100%;
+    }
+
+    .priority-breakdown {
+        flex-direction: column;
+    }
+}

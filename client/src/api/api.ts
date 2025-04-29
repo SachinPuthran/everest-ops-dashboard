@@ -21,6 +21,11 @@ apiClient.interceptors.response.use(
 );
 
 // Putwall API endpoints
+export const fetchPutwallCubbies = async () => {
+    const response = await apiClient.get('/putwall/cubbies');
+    return response.data;
+};
+
 export const fetchPutwallSummary = async () => {
     const response = await apiClient.get('/putwall/summary');
     return response.data;

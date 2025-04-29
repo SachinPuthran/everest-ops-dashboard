@@ -251,6 +251,27 @@ async function insertSampleUnitSortData(db: Database) {
 }
 
 // API Routes for Putwall
+app.get('/api/putwall/cubbies', async (req, res) => {
+    try {
+        const db = await dbPromise;
+        const summary = await db.all(`
+            SELECT
+                cubby,
+                SUBSTR(cubby, 3, 1) as cubby_zone,
+                SUBSTR(cubby, 5, 2) as cubby_wall,
+                SUBSTR(cubby, 8, 1) as cubby_column,
+                SUBSTR(cubby, 9, 2) as cubby_number
+            FROM putwall;
+        `);
+        res.header('Access-Control-Allow-Origin', '*');
+        res.json(summary);
+    } catch (error) {
+        console.error('Error fetching putwall summary:', error);
+        res.header('Access-Control-Allow-Origin', '*');
+        res.status(500).json({error: 'Failed to fetch putwall summary'});
+    }
+});
+
 app.get('/api/putwall/summary', async (req, res) => {
     try {
         const db = await dbPromise;
