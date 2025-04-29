@@ -350,6 +350,46 @@ app.get('/api/putwall/data', async (req, res) => {
 });
 
 // API Routes for Replenishment
+app.get('/api/replenishment/summaryByPriority', async (req, res) => {
+    try {
+        const db = await dbPromise;
+        const summary = await db.all(`
+            SELECT
+                pack_lane,
+                CASE
+                    WHEN CAST(priority AS INTEGER) >= 30 AND CAST(priority AS INTEGER) < 40 THEN '30-39'
+                    WHEN CAST(priority AS INTEGER) >= 40 AND CAST(priority AS INTEGER) < 50 THEN '40-49'
+                    WHEN CAST(priority AS INTEGER) >= 50 AND CAST(priority AS INTEGER) < 60 THEN '50-59'
+                    WHEN CAST(priority AS INTEGER) >= 60 AND CAST(priority AS INTEGER) < 70 THEN '60-69'
+                    WHEN CAST(priority AS INTEGER) >= 70 AND CAST(priority AS INTEGER) < 80 THEN '70-79'
+                    WHEN CAST(priority AS INTEGER) >= 80 AND CAST(priority AS INTEGER) < 90 THEN '80-89'
+                    WHEN CAST(priority AS INTEGER) >= 90 AND CAST(priority AS INTEGER) <= 100 THEN '90-100'
+                    WHEN priority IS NULL THEN 'No Priority'
+                    ELSE 'Other'
+                    END as priority_range,
+                COUNT(*) as count
+            FROM replenishment
+            GROUP BY
+                pack_lane,
+                2
+            ORDER BY
+                pack_lane,
+                CASE
+                    WHEN priority_range = 'No Priority' THEN 1
+                    WHEN priority_range = 'Other' THEN 2
+                    ELSE 3
+                END,
+                priority_range;
+        `);
+        res.header('Access-Control-Allow-Origin', '*');
+        res.json(summary);
+    } catch (error) {
+        console.error('Error fetching replenishment summary:', error);
+        res.header('Access-Control-Allow-Origin', '*');
+        res.status(500).json({error: 'Failed to fetch replenishment summary'});
+    }
+});
+
 app.get('/api/replenishment/summary', async (req, res) => {
     try {
         const db = await dbPromise;

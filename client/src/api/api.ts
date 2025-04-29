@@ -45,6 +45,11 @@ export const fetchPutwallData = async (filters = {}) => {
 };
 
 // Replenishment API endpoints
+export const fetchReplenishmentSummaryByPriority = async () => {
+    const response = await apiClient.get('/replenishment/summaryByPriority');
+    return response.data;
+};
+
 export const fetchReplenishmentSummary = async () => {
     const response = await apiClient.get('/replenishment/summary');
     return response.data;
