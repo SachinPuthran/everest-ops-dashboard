@@ -394,7 +394,13 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                         }}
                     >
                         <h4>Cubby {cubbyTooltipInfo.cubby.cubby}</h4>
-                        <p>Current Status: {cubbyTooltipInfo.cubby.status}</p>
+                        <p>Current Status: {
+                            cubbyTooltipInfo.cubby.status === 'green' ? 'Ready to Pack' :
+                            cubbyTooltipInfo.cubby.status === 'purple' ? 'Waiting' :
+                            cubbyTooltipInfo.cubby.status === 'white' ? 'Empty' :
+                            cubbyTooltipInfo.cubby.status === 'red' ? 'Priority order Pack Ready' :
+                            cubbyTooltipInfo.cubby.status
+                        }</p>
                         <p>Containers Processed: {cubbyTooltipInfo.cubby.containerCount}</p>
                         <h5>Average Time in Status (minutes):</h5>
                         <ul>
@@ -463,7 +469,7 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                     </div>
                     <div className="legend-item">
                         <div className="legend-color white"></div>
-                        <span>Transfer</span>
+                        <span>Empty</span>
                     </div>
                     <div className="legend-item">
                         <div className="legend-color red"></div>

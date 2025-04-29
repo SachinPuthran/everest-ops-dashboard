@@ -166,7 +166,7 @@ const UnitSortDetails: React.FC = () => {
                     <th>Released Count</th>
                     <th>Allocated Units</th>
                     <th>Unallocated Units</th>
-                    <th>Actions</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
