@@ -470,7 +470,8 @@ app.get('/api/unitsort/summary', async (req, res) => {
 app.get('/api/unitsort/data', async (req, res) => {
     try {
         const db = await dbPromise;
-        const {containerId} = req.query;
+        let {containerId} = req.query;
+        if(!containerId) containerId = '34';
         let query = 'select container_id, sum(cast(item_count as int)) as ItemCount, sum(cast(RELEASED as int)) as ReleasedUnits, sum(cast(allocated_picks as int)) as AllocatedUnits, sum(cast(unallocated_picks as int)) as UnallocatedUnits from unitsort';
         const params = [];
 

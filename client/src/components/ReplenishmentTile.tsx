@@ -129,6 +129,12 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
                     label: function (context) {
                         return `${context.dataset.label}: ${context.raw}`;
                     }
+                },
+                titleFont: {
+                    size: 14
+                },
+                bodyFont: {
+                    size: 14
                 }
             }
         }
