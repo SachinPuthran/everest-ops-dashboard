@@ -313,6 +313,26 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
         <div className={`tile ${isActive ? 'active' : ''}`} onClick={onClick}>
             <h2>Putwall</h2>
             <div className="tile-content">
+                <div className="tile-footer">
+                    <div className="status-legend">
+                        <div className="legend-item">
+                            <div className="legend-color green"></div>
+                            <span>Ready to pack</span>
+                        </div>
+                        <div className="legend-item">
+                            <div className="legend-color purple"></div>
+                            <span>Waiting</span>
+                        </div>
+                        <div className="legend-item">
+                            <div className="legend-color white"></div>
+                            <span>Empty</span>
+                        </div>
+                        <div className="legend-item">
+                            <div className="legend-color red"></div>
+                            <span>Priority order pack ready</span>
+                        </div>
+                    </div>
+                </div>
                 <div className="putwall-zones-container">
                     {cubbyZones.map(zone => {
                         // Get all cubbies for this zone
@@ -456,26 +476,6 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                         </ul>
                     </div>
                 )}
-            </div>
-            <div className="tile-footer">
-                <div className="status-legend">
-                    <div className="legend-item">
-                        <div className="legend-color green"></div>
-                        <span>Ready to pack</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color purple"></div>
-                        <span>Waiting</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color white"></div>
-                        <span>Empty</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color red"></div>
-                        <span>Priority order pack ready</span>
-                    </div>
-                </div>
             </div>
         </div>
     );

@@ -112,7 +112,7 @@ const UnitSortTile: React.FC<TileProps> = ({isActive, onClick}) => {
                     <h3>Container Summary</h3>
                     <ul>
                         <li className="divider"></li>
-                        <li><span className="label">Package Count:</span> {data.PackageCount}</li>
+                        <li><span className="label">Container Count:</span> {data.PackageCount}</li>
                         {/*<li><span className="label">Unit Count:</span> {data.UnitCount}</li>*/}
                         <li><span className="label">Released Units:</span> {data.ReleasedUnits}</li>
                         <li><span className="label">Allocated Units:</span> {data.AllocatedUnits}</li>

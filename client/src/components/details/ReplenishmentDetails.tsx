@@ -61,14 +61,14 @@ const FilterBar: React.FC<FilterProps> = ({
             </select>
         </div>
         <div className="filter-group">
-            <label htmlFor="zone">Zone:</label>
+            <label htmlFor="zone">Pickarea:</label>
             <select
                 id="zone"
                 name="zone"
                 value={filters.zone}
                 onChange={(e) => onChange('zone', e.target.value)}
             >
-                <option value="">All Zones</option>
+                <option value="">All Pickarea</option>
                 {zones.map(zone => (
                     <option key={zone} value={zone}>{zone}</option>
                 ))}
@@ -170,7 +170,7 @@ const ReplenishmentDetails: React.FC = () => {
                 <tr>
                     <th>Pack Lane</th>
                     <th>Work Type</th>
-                    <th>Zone</th>
+                    <th>Pickarea</th>
                     <th>Priority</th>
                     <th>Total Replen Units</th>
                     <th>Demand Qty</th>

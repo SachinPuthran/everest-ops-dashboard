@@ -355,7 +355,14 @@ app.get('/api/replenishment/summaryByPriority', async (req, res) => {
         const db = await dbPromise;
         const summary = await db.all(`
             SELECT
-                pack_lane,
+                CASE
+                    WHEN upper(pack_lane) LIKE '%POLY%' THEN 'Poly'
+                    WHEN upper(pack_lane) LIKE '%MAN PACK%' THEN 'Man Pack'
+                    WHEN upper(pack_lane) LIKE '%UNIT SORT%' THEN 'Unit Sort'
+                    WHEN pack_lane LIKE 'NON SORT' THEN 'Non Sort'
+                    WHEN pack_lane LIKE 'SMART AUTO' THEN 'Smart Auto'
+                    ELSE pack_lane
+                    END         as pack_lane,
                 CASE
                     WHEN CAST(priority AS INTEGER) >= 30 AND CAST(priority AS INTEGER) < 40 THEN '30-39'
                     WHEN CAST(priority AS INTEGER) >= 40 AND CAST(priority AS INTEGER) < 50 THEN '40-49'
@@ -370,10 +377,10 @@ app.get('/api/replenishment/summaryByPriority', async (req, res) => {
                 COUNT(*) as count
             FROM replenishment
             GROUP BY
-                pack_lane,
+                1,
                 2
             ORDER BY
-                pack_lane,
+                1,
                 CASE
                     WHEN priority_range = 'No Priority' THEN 1
                     WHEN priority_range = 'Other' THEN 2
@@ -394,10 +401,23 @@ app.get('/api/replenishment/summary', async (req, res) => {
     try {
         const db = await dbPromise;
         const summary = await db.all(`
-            SELECT pack_lane, SUM(replen_qty) as count
+            SELECT CASE
+                       WHEN upper(pack_lane) LIKE '%POLY%' THEN 'Poly'
+                       WHEN upper(pack_lane) LIKE '%MAN PACK%' THEN 'Man Pack'
+                       WHEN upper(pack_lane) LIKE '%UNIT SORT%' THEN 'Unit Sort'
+                       WHEN pack_lane LIKE 'NON SORT' THEN 'Non Sort'
+                       WHEN pack_lane LIKE 'SMART AUTO' THEN 'Smart Auto'
+                       ELSE pack_lane
+                       END         as pack_lane,
+                   SUM(replen_qty) as count
             FROM replenishment
-            group by pack_lane
-            order by pack_lane
+            GROUP BY CASE
+                WHEN upper(pack_lane) LIKE '%POLY%' THEN 'Poly'
+                WHEN upper(pack_lane) LIKE '%MAN PACK%' THEN 'Man Pack'
+                WHEN upper(pack_lane) LIKE '%UNIT SORT%' THEN 'Unit Sort'
+                ELSE pack_lane
+            END
+            ORDER BY pack_lane;
         `);
         res.header('Access-Control-Allow-Origin', '*');
         res.json(summary);
@@ -413,7 +433,27 @@ app.get('/api/replenishment/data', async (req, res) => {
         const db = await dbPromise;
         const {pack_lane, zone, priority} = req.query;
 
-        let query = 'SELECT pack_lane, work_type, case when from_location_id like \'%-%\' then substr(from_location_id, 1, 2) else from_location_id end as zone, priority, SUM(replen_qty) as TotalReplenUnits, SUM(case when demand_qty is null then 0 else demand_qty end) as TotalDemand from replenishment where 1=1';
+        let query = `
+            SELECT CASE
+                       WHEN upper(pack_lane) LIKE '%POLY%' THEN 'Poly'
+                       WHEN upper(pack_lane) LIKE '%MAN PACK%' THEN 'Man Pack'
+                       WHEN upper(pack_lane) LIKE '%UNIT SORT%' THEN 'Unit Sort'
+                       WHEN pack_lane LIKE 'NON SORT' THEN 'Non Sort'
+                       WHEN pack_lane LIKE 'SMART AUTO' THEN 'Smart Auto'
+                       ELSE pack_lane
+                       END                                                      as pack_lane,
+                   work_type,
+                   case
+                       when from_location_id like '%PDI%' then 'PDI'
+                       when from_location_id like '%PDO%' then 'PDO'
+                       when from_location_id like '%-%' then substr(from_location_id, 1, 2)
+                       else from_location_id
+                       end                                                      as zone,
+       priority,
+       SUM(replen_qty)                                              as TotalReplenUnits,
+       SUM(case when demand_qty is null then 0 else demand_qty end) as TotalDemand
+            from replenishment
+            where 1=1`;
 
         const params = [];
 
@@ -424,7 +464,7 @@ app.get('/api/replenishment/data', async (req, res) => {
 
         if (zone) {
             query += ' AND (from_location_id like ? OR from_location_id = ?)';
-            params.push(`${zone}%`);
+            params.push(`%${zone}%`);
             params.push(zone);
         }
 
@@ -433,7 +473,7 @@ app.get('/api/replenishment/data', async (req, res) => {
             params.push(priority);
         }
 
-        query += ' group by 1, 2, 3, 4 order by 2, 3, 4'
+        query += ' group by 1, 2, 3, 4 order by 4 desc, 1'
         const data = await db.all(query, params);
 
         res.header('Access-Control-Allow-Origin', '*');

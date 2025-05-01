@@ -82,7 +82,6 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
             backgroundColor: colorMap[priorityRange]?.backgroundColor || 'rgba(54, 162, 235, 0.6)',
             borderColor: colorMap[priorityRange]?.borderColor || 'rgba(54, 162, 235, 1)',
             borderWidth: 1,
-            minBarLength: 10,
             maxBarLength: 50,
         };
     });
@@ -120,6 +119,13 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
             legend: {
                 display: true,
                 position: 'top',
+                labels: {
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    },
+                    padding: 4
+                }
             },
             tooltip: {
                 enabled: true,
@@ -154,7 +160,7 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
 
     return (
         <div className={`replenishment tile ${isActive ? 'active' : ''}`} onClick={onClick}>
-            <h2>Replenishment</h2>
+            <h2>Open Replenishments</h2>
             <div className="tile-content">
                 <div className="replenishment chart-container">
                     <Bar data={chartData} options={chartOptions}/>
