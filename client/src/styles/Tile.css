@@ -10,8 +10,12 @@
     flex-direction: column;
 }
 
-.tile.replenishment, .tile.unitsort {
+.tile.replenishment {
     height: 80vh;
+}
+
+.tile.unitsort {
+    height: 60vh;
 }
 
 .tile.active {
@@ -41,8 +45,12 @@
     position: relative;
 }
 
-.chart-container.replenishment, .chart-container.unitsort {
+.chart-container.replenishment {
     max-height: 50vh;
+}
+
+.chart-container.unitsort {
+    max-height: 40vh;
 }
 
 .summary-container {
@@ -53,8 +61,12 @@
     overflow-y: auto;
 }
 
-.summary-container.replenishment, .summary-container.unitsort {
+.summary-container.replenishment {
     max-height: 30vh;
+}
+
+.summary-container.unitsort {
+    max-height: 15vh;
 }
 
 .summary-container h3 {

@@ -75,7 +75,7 @@ const DetailsModal: React.FC<{ item: PutwallItem; onClose: () => void }> = ({ it
     <div className="modal-backdrop">
         <div className="modal-content">
             <div className="modal-header">
-                <h3>Details for Item ID: {item.id}</h3>
+                <h3>Details for Cubby: {item.cubby}</h3>
                 <button className="close-btn" onClick={onClose}>×</button>
             </div>
             <div className="modal-body">
@@ -181,19 +181,17 @@ const PutwallDetails: React.FC = () => {
             <table className="data-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Zone</th>
                         <th>Cubby</th>
                         <th>Status</th>
                         <th>Priority</th>
-                        <th>Actions</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {data && data.length > 0 ? (
                         data.map(item => (
                             <tr key={item.id}>
-                                <td>{item.id}</td>
                                 <td>{item.zone}</td>
                                 <td>{item.cubby}</td>
                                 <td>{item.status}</td>

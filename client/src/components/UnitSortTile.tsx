@@ -82,7 +82,7 @@ const UnitSortTile: React.FC<TileProps> = ({isActive, onClick}) => {
                 position: 'bottom',
                 labels: {
                     font: {
-                        size: 12
+                        size: 14
                     },
                     padding: 4
                 }
@@ -98,7 +98,7 @@ const UnitSortTile: React.FC<TileProps> = ({isActive, onClick}) => {
                 }
             }
         },
-        cutout: '60%'
+        cutout: '50%'
     };
 
     return (

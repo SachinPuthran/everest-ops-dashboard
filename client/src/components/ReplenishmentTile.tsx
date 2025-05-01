@@ -49,11 +49,9 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
         );
     }
 
-    // Process data to create stacked chart
     const uniquePackLanes = [...new Set(data.map(item => item.pack_lane))];
     const uniquePriorityRanges = [...new Set(data.map(item => item.priority_range))];
 
-    // Sort priority ranges in ascending order
     uniquePriorityRanges.sort((a, b) => {
         if (a === 'No Priority') return -1;
         if (b === 'No Priority') return 1;
@@ -62,7 +60,6 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
         return a.localeCompare(b);
     });
 
-    // Define colors for each priority range
     const colorMap: Record<string, { backgroundColor: string, borderColor: string }> = {
         'No Priority': { backgroundColor: 'rgba(200, 200, 200, 0.6)', borderColor: 'rgba(200, 200, 200, 1)' },
         'Other': { backgroundColor: 'rgba(150, 150, 150, 0.6)', borderColor: 'rgba(150, 150, 150, 1)' },
@@ -75,7 +72,6 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
         '90-100': { backgroundColor: 'rgba(201, 203, 207, 0.6)', borderColor: 'rgba(201, 203, 207, 1)' }
     };
 
-    // Create datasets for each priority range
     const datasets = uniquePriorityRanges.map(priorityRange => {
         return {
             label: priorityRange,
@@ -86,8 +82,6 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
             backgroundColor: colorMap[priorityRange]?.backgroundColor || 'rgba(54, 162, 235, 0.6)',
             borderColor: colorMap[priorityRange]?.borderColor || 'rgba(54, 162, 235, 1)',
             borderWidth: 1,
-            // barThickness: 30, // Fixed bar thickness
-            // maxBarThickness: 50, // Maximum bar thickness
             minBarLength: 10,
             maxBarLength: 50,
         };
@@ -119,7 +113,7 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
                     text: 'Count'
                 },
                 min: 0,
-                suggestedMax: 20 // Adjust this value based on your data range
+                suggestedMax: 20
             },
         },
         plugins: {
@@ -140,7 +134,6 @@ const ReplenishmentTile: React.FC<TileProps> = ({isActive, onClick}) => {
         }
     };
 
-    // Group data by pack lane
     const dataByPackLane = uniquePackLanes.map(packLane => {
         const packLaneData = data.filter(item => item.pack_lane === packLane);
         const total = packLaneData.reduce((sum, item) => sum + item.count, 0);
