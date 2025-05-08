@@ -39,6 +39,10 @@
     gap: 15px;
 }
 
+.unitsort .tile-content {
+    flex-direction: row;
+}
+
 .chart-container {
     flex-grow: 1;
     min-height: 120px;
@@ -51,6 +55,7 @@
 
 .chart-container.unitsort {
     max-height: 40vh;
+    width: 65%;
 }
 
 .summary-container {
@@ -66,7 +71,9 @@
 }
 
 .summary-container.unitsort {
-    max-height: 15vh;
+    max-height: 40vh;
+    width: 35%;
+    margin-left: 15px;
 }
 
 .summary-container h3 {

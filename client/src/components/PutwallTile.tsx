@@ -5,6 +5,28 @@ import {TileProps} from '../types';
 import '../styles/Tile.css';
 import './PutwallTile.css'; // We'll create this file for custom styles
 
+const formatTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hours === 0) {
+        return [
+            minutes.toString().padStart(2, '0'),
+            secs.toString().padStart(2, '0')
+        ].join(':');
+    }
+    return [
+        hours.toString().padStart(2, '0'),
+        minutes.toString().padStart(2, '0'),
+        secs.toString().padStart(2, '0')
+    ].join(':');
+};
+
+const generateRandomTime = (): number => {
+    return Math.floor(Math.random() * (7200 - 5 + 1)) + 5;
+};
+
 // Define the types based on usage in the component
 interface PutwallSummaryItem {
     zone: string;
@@ -35,6 +57,7 @@ interface Cubby {
     number: string;
     status: 'green' | 'red' | 'purple' | 'white';
     lastStatusChange: Date;
+    timeInStatus: number; // Time in seconds the cubby has been in current status
     containerCount: number;
     averageTimeInStatus: {
         packReady: number;
@@ -134,6 +157,7 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                     number: cubbyItem.cubby_number,
                     status: randomStatus,
                     lastStatusChange: new Date(),
+                    timeInStatus: generateRandomTime(), // Random time between 5 seconds and 2 hours
                     containerCount: Math.floor(Math.random() * 100) + 1,
                     averageTimeInStatus: {
                         packReady: Math.floor(Math.random() * 60) + 1,
@@ -161,7 +185,6 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                     const newCubbies = [...prevCubbies];
                     const statuses: ('green' | 'red' | 'white' | 'purple')[] = ['green', 'red', 'white', 'purple'];
 
-                    // Group cubbies by zone and column (rows)
                     const rowGroups: Record<string, Cubby[]> = {};
 
                     prevCubbies.forEach(cubby => {
@@ -172,30 +195,26 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                         rowGroups[rowKey].push(cubby);
                     });
 
-                    // For each row, change 1-5 cubbies
                     Object.values(rowGroups).forEach(row => {
                         if (row.length > 0) {
-                            // Random number between 1 and 5, or the row length if less than 5
                             const numToChange = Math.min(Math.floor(Math.random() * 5) + 1, row.length);
 
-                            // Get random indices to change
                             const indicesToChange = new Set<number>();
                             while (indicesToChange.size < numToChange) {
                                 indicesToChange.add(Math.floor(Math.random() * row.length));
                             }
 
-                            // Change the status of selected cubbies
                             indicesToChange.forEach(index => {
                                 const cubby = row[index];
                                 const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
 
-                                // Find the cubby in the newCubbies array and update it
                                 const cubbyIndex = newCubbies.findIndex(c => c.id === cubby.id);
                                 if (cubbyIndex !== -1) {
                                     newCubbies[cubbyIndex] = {
                                         ...newCubbies[cubbyIndex],
                                         status: randomStatus,
-                                        lastStatusChange: new Date()
+                                        lastStatusChange: new Date(),
+                                        timeInStatus: generateRandomTime()
                                     };
                                 }
                             });
@@ -211,6 +230,23 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
             clearInterval(interval);
         };
     }, [cubbies]);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            if (cubbies.length > 0) {
+                setCubbies(prevCubbies => {
+                    return prevCubbies.map(cubby => ({
+                        ...cubby,
+                        timeInStatus: cubby.timeInStatus + 1
+                    }));
+                });
+            }
+        }, 1000); // Update every second
+
+        return () => {
+            clearInterval(timer);
+        };
+    }, [cubbies.length]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -389,6 +425,7 @@ const PutwallTile: React.FC<TileProps> = ({ isActive, onClick }) => {
                                                                         onMouseLeave={handleCubbyMouseLeave}
                                                                     >
                                                                         <span className="cubby-id">{cubby.column + cubby.number}</span>
+                                                                        <span className="cubby-time">{formatTime(cubby.timeInStatus)}</span>
                                                                     </div>
                                                                 );
                                                             })}
